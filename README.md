@@ -1,5 +1,7 @@
 # JabSharp
-##### 用C#写的一个对Java Access Bridge的包装
+##### 用C#写的一个对Java Access Bridge的简单包装
+
+主要的类：JabDriver，JabElement
 
 当需要对Java窗体元素进行定位，调用的方法与Selenium十分类似,例如FindElementByName，FindElementByRole
 
