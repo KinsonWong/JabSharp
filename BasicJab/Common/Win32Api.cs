@@ -4,13 +4,12 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.Runtime.InteropServices;
 using System.Text;
-using System.Threading;
 using Win32;
-using System.Diagnostics;
+using System.Threading.Tasks;
 
 namespace BasicJab.Common
 {
-    class Win32Api
+    public static class Win32Api
     {
         //移动鼠标 
         const int MOUSEEVENTF_MOVE = 0x0001;
@@ -123,12 +122,21 @@ namespace BasicJab.Common
             Angular = 1,
             Raw = 2,
         }
+        
+        /// <summary>
+        /// 另一种方式休眠
+        /// </summary>
+        /// <param name="milliseconds"></param>
+        private static void MySleep(int milliseconds)
+        {
+            Task.Delay(milliseconds).Wait();
+        }
 
         /// <summary>
         /// 枚举所有已打开的windows窗口，窗口标题和句柄 写入字典
         /// </summary>
         /// <returns></returns>
-        public IDictionary<IntPtr, string> GetAllOpenWindows()
+        public static IDictionary<IntPtr, string> GetAllOpenWindows()
         {
             IntPtr shellWindow = GetShellWindow();
             Dictionary<IntPtr, string> windows = new Dictionary<IntPtr, string>();
@@ -159,7 +167,7 @@ namespace BasicJab.Common
         /// <param name="hwnd"></param>
         /// <param name="nCmdShow"></param>
         /// <returns></returns>
-        public IntPtr _ShowWindow(IntPtr hwnd, int nCmdShow)
+        public static IntPtr _ShowWindow(IntPtr hwnd, int nCmdShow)
         {
             return ShowWindow(hwnd, nCmdShow);
         }
@@ -169,7 +177,7 @@ namespace BasicJab.Common
         /// </summary>
         /// <param name="caption"></param>
         /// <returns></returns>
-        public IntPtr FindWindowByCaption(string caption)
+        public static IntPtr FindWindowByCaption(string caption)
         {
             return FindWindow(null, caption);
         }
@@ -178,7 +186,7 @@ namespace BasicJab.Common
         /// 将指定句柄的窗口放到顶层
         /// </summary>
         /// <param name="hwnd"></param>
-        public void SetTopWindow(IntPtr hwnd)
+        public static void SetTopWindow(IntPtr hwnd)
         {
             SetForegroundWindow(hwnd);
         }
@@ -188,7 +196,7 @@ namespace BasicJab.Common
         /// </summary>
         /// <param name="hwnd"></param>
         /// <returns></returns>
-        public int GetPidFromHwnd(IntPtr hwnd)
+        public static int GetPidFromHwnd(IntPtr hwnd)
         {
             if (hwnd == IntPtr.Zero) return 0;
             int pid;
@@ -202,7 +210,7 @@ namespace BasicJab.Common
         /// <param name="hwnd"></param>
         /// <param name="width"></param>
         /// <param name="height"></param>
-        public void SetWindowSize(IntPtr hwnd, int width, int height)
+        public static void SetWindowSize(IntPtr hwnd, int width, int height)
         {
             const short SWP_NOMOVE = 0X2;
             const short SWP_NOZORDER = 0X4;
@@ -215,7 +223,7 @@ namespace BasicJab.Common
         /// <param name="hwnd"></param>
         /// <param name="x"></param>
         /// <param name="y"></param>
-        public void SetWindowPosition(IntPtr hwnd, int x, int y)
+        public static void SetWindowPosition(IntPtr hwnd, int x, int y)
         {
             const short SWP_NOZORDER = 0X4;
             const short SWP_NOSIZE = 0X1;
@@ -223,11 +231,11 @@ namespace BasicJab.Common
         }
 
         /// <summary>
-        /// 获取指定句柄的截图，返回bitmap对象
+        /// 获取指定句柄的窗口的截图，返回bitmap对象
         /// </summary>
         /// <param name="hwnd"></param>
         /// <returns></returns>
-        public Bitmap GetScreenshot(IntPtr hwnd)
+        public static Bitmap GetScreenshot(IntPtr hwnd)
         {
             SetTopWindow(hwnd);
 
@@ -264,7 +272,7 @@ namespace BasicJab.Common
             return bmp;
         }
 
-        public RECT GetRectFromHwnd(IntPtr hwnd)
+        public static RECT GetRectFromHwnd(IntPtr hwnd)
         {
             RECT rc;
             GetWindowRect(new HandleRef(null, hwnd), out rc);
@@ -278,33 +286,43 @@ namespace BasicJab.Common
         /// <param name="y"></param>
         /// <param name="holdSeconds"></param>
         /// <param name="btn"></param>
-        public void Mouse_Click(int x, int y, int holdSeconds = 0, string btn = "left")
+        public static void Mouse_Click(int x, int y, int holdSeconds = 0, string btn = "left")
         {
-            int mouse_down_act, mouse_up_act;
+            int mouseDownAct, mouseUpAct;
             if (btn == "left")
             {
-                mouse_down_act = MOUSEEVENTF_LEFTDOWN;
-                mouse_up_act = MOUSEEVENTF_LEFTUP;
+                mouseDownAct = MOUSEEVENTF_LEFTDOWN;
+                mouseUpAct = MOUSEEVENTF_LEFTUP;
             }
             else
             {
-                mouse_down_act = MOUSEEVENTF_RIGHTDOWN;
-                mouse_up_act = MOUSEEVENTF_RIGHTUP;
+                mouseDownAct = MOUSEEVENTF_RIGHTDOWN;
+                mouseUpAct = MOUSEEVENTF_RIGHTUP;
             }
 
             SetCursorPos(x, y);
-            mouse_event(mouse_down_act, x, y, 0, 0);
-            if (holdSeconds > 0) Thread.Sleep(holdSeconds * 1000);
-            mouse_event(mouse_up_act, x, y, 0, 0);
+            mouse_event(mouseDownAct, x, y, 0, 0);
+            if (holdSeconds > 0) MySleep(holdSeconds * 1000);
+            mouse_event(mouseUpAct, x, y, 0, 0);
         }
 
-        public void Move_Cursor(int x, int y)
+        /// <summary>
+        /// 移动鼠标到指定位置
+        /// </summary>
+        /// <param name="x"></param>
+        /// <param name="y"></param>
+        public static void Move_Cursor(int x, int y)
         {
             SetCursorPos(x, y);
         }
 
 
-        public bool SetClipboardText(string text)
+        /// <summary>
+        /// 设置剪切板文字
+        /// </summary>
+        /// <param name="text"></param>
+        /// <returns></returns>
+        public static bool SetClipboardText(string text)
         {
             if (OpenClipboard(IntPtr.Zero))
             {
@@ -317,7 +335,11 @@ namespace BasicJab.Common
             else { return false; }
         }
 
-        public bool ClearClipboard()
+        /// <summary>
+        /// 清空剪切板
+        /// </summary>
+        /// <returns></returns>
+        public static bool ClearClipboard()
         {
             if (OpenClipboard(IntPtr.Zero))
             {
@@ -329,27 +351,30 @@ namespace BasicJab.Common
         }
 
 
-        public void ConvertPoint_LogicalToPhysical(ref int x_value, ref int y_value)
+        /// <summary>
+        /// 逻辑坐标转化为物理坐标
+        /// </summary>
+        /// <param name="xValue"></param>
+        /// <param name="yValue"></param>
+        public static void ConvertPoint_LogicalToPhysical(ref int xValue, ref int yValue)
         {
             POINT p = new POINT
             {
-                x = x_value,
-                y = y_value
+                x = xValue,
+                y = yValue
             };
 
             //计算缩放比列  
-            IntPtr pm_screnn=MonitorFromPoint(p, 1);
+            IntPtr pmScrenn=MonitorFromPoint(p, 1);
             uint dpiX,dpiY;
 
-            GetDpiForMonitor(pm_screnn, DpiType.Effective, out dpiX, out dpiY);
+            GetDpiForMonitor(pmScrenn, DpiType.Effective, out dpiX, out dpiY);
 
             double scalingFactor = dpiY / 96.0;
 
             //逻辑坐标乘以缩放比列得到物理坐标
-            x_value = (int)(x_value*scalingFactor);
-            y_value = (int)(y_value * scalingFactor);
+            xValue = (int)(xValue*scalingFactor);
+            yValue = (int)(yValue * scalingFactor);
         }
-
-
     }
 }

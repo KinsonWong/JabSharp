@@ -1,59 +1,52 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace BasicJab.Common
 {
-    class STAThread : IDisposable
+    public class STAThread : IDisposable
     {
-        private Thread thread;
-        private SynchronizationContext ctx;
-        private ManualResetEvent mre;
+        private Thread _thread;
+        private SynchronizationContext _ctx;
+        private ManualResetEvent _mre;
 
         public STAThread()
         {
-            using (mre = new ManualResetEvent(false))
+            using (_mre = new ManualResetEvent(false))
             {
-                thread = new Thread(() => {
+                _thread = new Thread(() => {
                     Application.Idle += Initialize;
                     Application.Run();  //run message loop
                 });
-                thread.IsBackground = true;
-                thread.SetApartmentState(ApartmentState.STA);
-                thread.Start();
-                mre.WaitOne();
+                _thread.IsBackground = true;
+                _thread.SetApartmentState(ApartmentState.STA);
+                _thread.Start();
+                _mre.WaitOne();
             }
         }
         public void BeginInvoke(Delegate dlg, params Object[] args)
         {
-            if (ctx == null) throw new ObjectDisposedException("STAThread");
-            ctx.Post((_) => dlg.DynamicInvoke(args), null);
+            if (_ctx == null) throw new ObjectDisposedException("STAThread");
+            _ctx.Post((_) => dlg.DynamicInvoke(args), null);
         }
         public object Invoke(Delegate dlg, params Object[] args)
         {
-            if (ctx == null) throw new ObjectDisposedException("STAThread");
+            if (_ctx == null) throw new ObjectDisposedException("STAThread");
             object result = null;
-            ctx.Send((_) => result = dlg.DynamicInvoke(args), null);
+            _ctx.Send((_) => result = dlg.DynamicInvoke(args), null);
             return result;
         }
         protected virtual void Initialize(object sender, EventArgs e)
         {
-            ctx = SynchronizationContext.Current;
-            mre.Set();
+            _ctx = SynchronizationContext.Current;
+            _mre.Set();
             Application.Idle -= Initialize;
         }
         public void Dispose()
         {
-            if (ctx != null)
-            {
-                ctx.Send((_) => Application.ExitThread(), null);
-                ctx = null;
-            }
+            if (_ctx == null) return;
+            _ctx.Send((_) => Application.ExitThread(), null);
+            _ctx = null;
         }
 
     }

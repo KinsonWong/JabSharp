@@ -9,7 +9,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>BasicJab</RootNamespace>
     <AssemblyName>BasicJab</AssemblyName>
-    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
   </PropertyGroup>
@@ -52,7 +52,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="BY.cs" />
+    <Compile Include="By.cs" />
     <Compile Include="ComInterface\IUtility.cs" />
     <Compile Include="ComInterface\IJabDriver.cs" />
     <Compile Include="ComInterface\IJabElement.cs" />

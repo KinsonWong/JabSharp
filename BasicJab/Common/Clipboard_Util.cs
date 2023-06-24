@@ -9,11 +9,15 @@ using System.Threading.Tasks;
 
 namespace BasicJab.Common
 {
-    public class Clipboard_Util
+    public static class Clipboard_Util
     {
         const uint cfUnicodeText = 13;
 
-        public string GetText()
+        /// <summary>
+        /// 调Win API 获取剪切板文字
+        /// </summary>
+        /// <returns></returns>
+        public static string GetText()
         {
             if (!IsClipboardFormatAvailable(cfUnicodeText))
             {
@@ -25,14 +29,18 @@ namespace BasicJab.Common
             return InnerGet();
         }
 
-        public void SetText(string text)
+        /// <summary>
+        /// 调Win API 设置剪切板文字
+        /// </summary>
+        /// <param name="text"></param>
+        public static void SetText(string text)
         {
             TryOpenClipboard();
 
             InnerSet(text);
         }
 
-        static void InnerSet(string text)
+        private static void InnerSet(string text)
         {
             EmptyClipboard();
             IntPtr hGlobal = IntPtr.Zero;
@@ -80,7 +88,7 @@ namespace BasicJab.Common
             }
         }
 
-        static string InnerGet()
+        private static string InnerGet()
         {
             IntPtr handle = IntPtr.Zero;
 
@@ -117,7 +125,7 @@ namespace BasicJab.Common
             }
         }
 
-        static void TryOpenClipboard()
+        private static void TryOpenClipboard()
         {
             var num = 10;
             while (true)
@@ -136,7 +144,7 @@ namespace BasicJab.Common
             }
         }
 
-        static void ThrowWin32()
+        private static void ThrowWin32()
         {
             throw new Win32Exception(Marshal.GetLastWin32Error());
         }

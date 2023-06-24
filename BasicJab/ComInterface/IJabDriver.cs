@@ -1,24 +1,23 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace BasicJab.ComInterface
 {
+    /// <summary>
+    /// JabDriver 对应的Com接口
+    /// </summary>
     [Guid("6043992A-07E4-4CF1-81AC-E06C439F63A9")]
     [ComVisible(true), InterfaceType(ComInterfaceType.InterfaceIsDual)]
     public interface IJabDriver
     {
-        IntPtr w_hwnd
+        IntPtr WHwnd
         {
             [Description("Java应用窗口的句柄")]
             get;
         }
-        int Jvm_ID { get; }
-        int PID
+        int JvmId { get; }
+        int Pid
         {
             [Description("Java应用的进程ID")]
             get;
@@ -54,7 +53,7 @@ namespace BasicJab.ComInterface
         [Description("Xpath会遍历所有节点，开销较大，建议少用")]
         JabElement[] FindElementsByXPath(string strXPath);
 
-        JabElement WaitUntilElementExists(BY by, object value, bool regexMatch = false, int timeoutSecond = 5);
+        JabElement WaitUntilElementExists(By by, object value, bool regexMatch = false, int timeoutSecond = 5);
 
         JabElement GetFocusedElement();
         void PerformKey(SKey shortcutkey);

@@ -1,9 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using BasicJab.ComInterface;
 using BasicJab.Common;
@@ -22,6 +18,7 @@ namespace BasicJab
             public Int32 x;
             public Int32 y;
         }
+
         [StructLayout(LayoutKind.Sequential)]
         struct CURSORINFO
         {
@@ -30,42 +27,30 @@ namespace BasicJab
             public IntPtr hCursor;
             public POINT ptScreenPos;
         }
+
         [DllImport("user32.dll")]
         static extern bool GetCursorInfo(out CURSORINFO pci);
+
         private const int CURSOR_SHOWING = 0x00000001;
 
 
-
+        /// <summary>
+        /// 获取鼠标句柄
+        /// </summary>
+        /// <returns></returns>
         private IntPtr GetCursorHandle()
         {
             CURSORINFO vCurosrInfo;
             vCurosrInfo.cbSize = Marshal.SizeOf(typeof(CURSORINFO));
             GetCursorInfo(out vCurosrInfo);
-            if ((vCurosrInfo.flags & CURSOR_SHOWING) != CURSOR_SHOWING)
-            {
-                return IntPtr.Zero;
-            }
-            else
-            {
-                return vCurosrInfo.hCursor;
-            }
-        }
-
-        private Win32Api api;
-
-        /// <summary>
-        /// 构造函数
-        /// </summary>
-        public Utiliy()
-        {
-            api = new Win32Api();
+            return (vCurosrInfo.flags & CURSOR_SHOWING) != CURSOR_SHOWING ? IntPtr.Zero : vCurosrInfo.hCursor;
         }
 
         /// <summary>
         /// 设置一个超时时间，等待鼠标变回默认指针的状态
         /// 一般用于等待鼠标是转圈的状态
         /// </summary>
-        /// <param name="timeout"></param>
+        /// <param name="timeoutSecond"></param>
         public void WaitUntilDefaultCursor(int timeoutSecond = 5)
         {
             long startTick = DateTime.Now.Ticks;
@@ -73,43 +58,64 @@ namespace BasicJab
             {
                 if (Cursors.Default.Handle == GetCursorHandle()) break;
 
-                long elapsedTicks = DateTime.Now.Ticks - startTick;
+                var elapsedTicks = DateTime.Now.Ticks - startTick;
                 if (new TimeSpan(elapsedTicks).TotalSeconds > timeoutSecond)
                 {
-                    throw new InvalidOperationException(String.Format("Wait Until Default Cursor Timeout After {0} seconds", timeoutSecond));
+                    throw new InvalidOperationException($"Wait Until Default Cursor Timeout After {timeoutSecond} seconds");
                 }
             }
         }
 
         /// <summary>
-        /// 设置鼠标位置
+        /// 移动鼠标到指定位置
         /// </summary>
         /// <param name="x"></param>
         /// <param name="y"></param>
-        public void MoveCursorTo(int x, int y, bool detect_scaling = false)
+        /// <param name="detectScaling"></param>
+        public void MoveCursorTo(int x, int y, bool detectScaling = false)
         {
-            int x_value = x;
-            int y_value = y;
-            if (detect_scaling) api.ConvertPoint_LogicalToPhysical(ref x_value, ref y_value);
-            api.Move_Cursor(x_value, y_value);
+            int xValue = x;
+            int yValue = y;
+            if (detectScaling) Win32Api.ConvertPoint_LogicalToPhysical(ref xValue, ref yValue);
+            Win32Api.Move_Cursor(xValue, yValue);
         }
 
-        public void Click_Left_Mouse(int x, int y, int holdSeconds = 0, bool detect_scaling = false)
+        /// <summary>
+        /// 点击鼠标左键
+        /// </summary>
+        /// <param name="x"></param>
+        /// <param name="y"></param>
+        /// <param name="holdSeconds"></param>
+        /// <param name="detectScaling"></param>
+        public void Click_Left_Mouse(int x, int y, int holdSeconds = 0, bool detectScaling = false)
         {
-            int x_value = x;
-            int y_value = y;
-            if (detect_scaling) api.ConvertPoint_LogicalToPhysical(ref x_value, ref y_value);
-            api.Mouse_Click(x_value, y_value, holdSeconds, "left");
+            int xValue = x;
+            int yValue = y;
+            if (detectScaling) Win32Api.ConvertPoint_LogicalToPhysical(ref xValue, ref yValue);
+            Win32Api.Mouse_Click(xValue, yValue, holdSeconds, "left");
         }
 
-        public void Click_Right_Mouse(int x, int y, int holdSeconds = 0, bool detect_scaling = false)
+        /// <summary>
+        /// 点击鼠标右键
+        /// </summary>
+        /// <param name="x"></param>
+        /// <param name="y"></param>
+        /// <param name="holdSeconds"></param>
+        /// <param name="detectScaling"></param>
+        public void Click_Right_Mouse(int x, int y, int holdSeconds = 0, bool detectScaling = false)
         {
-            int x_value = x;
-            int y_value = y;
-            if (detect_scaling) api.ConvertPoint_LogicalToPhysical(ref x_value, ref y_value);
-            api.Mouse_Click(x_value, y_value, holdSeconds, "right");
+            int xValue = x;
+            int yValue = y;
+            if (detectScaling) Win32Api.ConvertPoint_LogicalToPhysical(ref xValue, ref yValue);
+            Win32Api.Mouse_Click(xValue, yValue, holdSeconds, "right");
         }
 
+        /// <summary>
+        /// 用于简单判断两个Object是否相等
+        /// </summary>
+        /// <param name="obj1"></param>
+        /// <param name="obj2"></param>
+        /// <returns></returns>
         public bool IsSameObject(object obj1, object obj2)
         {
             string objType1, objType2;
@@ -120,16 +126,17 @@ namespace BasicJab
 
             try
             {
-                if (obj1 is JabElement){return ((JabElement)(obj1)).Equals(((JabElement)(obj2)));}
+                if (obj1 is JabElement)
+                {
+                    return ((JabElement)(obj1)).Equals(((JabElement)(obj2)));
+                }
 
                 return obj1.Equals(obj2);
-
             }
             catch (Exception)
             {
                 return false;
             }
         }
-
     }
 }

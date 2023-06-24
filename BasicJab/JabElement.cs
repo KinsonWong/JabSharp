@@ -3,12 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
 using WindowsAccessBridgeInterop;
-using System.Text;
-using System.Threading.Tasks;
 using System.Diagnostics;
 using System.Windows.Forms;
-using System.Drawing;
-using System.Threading;
 using System.Xml;
 using BasicJab.ComInterface;
 using BasicJab.Common;
@@ -22,22 +18,19 @@ namespace BasicJab
     [ComVisible(true), ClassInterface(ClassInterfaceType.None)]
     public class JabElement : IJabElement
     {
-        private AccessBridge objBridge;
-        private AccessibleContextNode context_Node;
-        private AccessibleActions acc_Action;
-        private Win32Api api;
-        private IntPtr hwnd;
-        private bool _auto_refresh;
-        public string elementID;
+        private AccessBridge _objBridge;
+        private AccessibleContextNode _contextNode;
+        private AccessibleActions _accAction;
+        private IntPtr _hwnd;
+        private bool _autoRefresh;
+        public string elementId;
 
         /// <summary>
         /// 构造函数 不带参数
         /// </summary>
-        /// <param name="node"></param>
         public JabElement()
         {
-            api = new Win32Api();
-            _auto_refresh = false;
+            _autoRefresh = false;
         }
 
         /// <summary>
@@ -47,160 +40,307 @@ namespace BasicJab
         /// <param name="handle"></param>
         public JabElement(AccessibleContextNode node, IntPtr handle) : this()
         {
-            api = new Win32Api();
-            hwnd = handle;
-            _auto_refresh = false;
-            objBridge = node.AccessBridge;
-            context_Node = node;
-            objBridge.Functions.GetAccessibleActions(context_Node.JvmId, context_Node.AccessibleContextHandle, out acc_Action);
-            elementID = Guid.NewGuid().ToString("N");
-
+            _hwnd = handle;
+            _autoRefresh = false;
+            _objBridge = node.AccessBridge;
+            _contextNode = node;
+            _objBridge.Functions.GetAccessibleActions(_contextNode.JvmId, _contextNode.AccessibleContextHandle,
+                out _accAction);
+            elementId = Guid.NewGuid().ToString("N");
         }
 
         /// <summary>
         /// 属性Name
         /// </summary>
-        public string name
-        {
-            get
-            {
-                try { if (_auto_refresh) { context_Node.Refresh(); } return context_Node.GetInfo().name; }
-                catch (Exception) { return string.Empty; }
-            }
-        }
-        /// <summary>
-        /// 属性Role
-        /// </summary>
-        public string role
-        {
-            get
-            {
-                try { if (_auto_refresh) { context_Node.Refresh(); } return context_Node.GetInfo().role_en_US.Trim().Replace(" ", "_"); }
-                catch (Exception) { return string.Empty; }
-            }
-        }
-        /// <summary>
-        /// 属性description
-        /// </summary>
-        public string description
-        {
-            get
-            {
-                try { if (_auto_refresh) { context_Node.Refresh(); } return context_Node.GetInfo().description; }
-                catch (Exception) { return string.Empty; }
-            }
-        }
-        /// <summary>
-        /// 属性states
-        /// </summary>
-        public string states
-        {
-            get
-            {
-                try { if (_auto_refresh) { context_Node.Refresh(); } return context_Node.GetInfo().states_en_US; }
-                catch (Exception) { return string.Empty; }
-            }
-        }
-        /// <summary>
-        /// 属性object_depth
-        /// </summary>
-        public int object_depth
-        {
-            get
-            {
-                try { if (_auto_refresh) { context_Node.Refresh(); } return objBridge.Functions.GetObjectDepth(context_Node.JvmId, context_Node.AccessibleContextHandle); }
-                catch (Exception) { return -1; }
-            }
-        }
-        /// <summary>
-        /// 属性index in parent
-        /// </summary>
-        public int index_in_parent
-        {
-            get
-            {
-                try { if (_auto_refresh) { context_Node.Refresh(); } return context_Node.GetInfo().indexInParent; }
-                catch (Exception) { return -1; }
-            }
-        }
-        /// <summary>
-        /// 属性children count
-        /// </summary>
-        public int children_count
-        {
-            get
-            {
-                try { if (_auto_refresh) { context_Node.Refresh(); } return context_Node.GetInfo().childrenCount; }
-                catch (Exception) { return -1; }
-            }
-        }
-        /// <summary>
-        /// 属性Text
-        /// </summary>
-        public string text
+        public string Name
         {
             get
             {
                 try
                 {
-                    if (_auto_refresh) { context_Node.Refresh(); }
-                    if (context_Node.GetInfo().accessibleText != 0)
+                    if (_autoRefresh)
                     {
-                        AccessibleTextInfo textInfo;
-                        if (objBridge.Functions.GetAccessibleTextInfo(context_Node.JvmId, context_Node.AccessibleContextHandle, out textInfo, 0, 0))
-                        {
-                            var reader = new AccessibleTextReader(context_Node, textInfo.charCount);
-                            return reader.ReadToEnd();
-                        }
-                        else { return string.Empty; }
+                        _contextNode.Refresh();
                     }
-                    else { return string.Empty; }
+
+                    return _contextNode.GetInfo().name;
                 }
-                catch (Exception) { return string.Empty; }
+                catch (Exception)
+                {
+                    return string.Empty;
+                }
             }
         }
+
+        /// <summary>
+        /// 属性Role
+        /// 注意 -> 为了实现Xpath定位，Role中的空格被全部替换为下划线
+        /// </summary>
+        public string Role
+        {
+            get
+            {
+                try
+                {
+                    if (_autoRefresh)
+                    {
+                        _contextNode.Refresh();
+                    }
+
+                    return _contextNode.GetInfo().role_en_US.Trim().Replace(" ", "_");
+                }
+                catch (Exception)
+                {
+                    return string.Empty;
+                }
+            }
+        }
+
+        /// <summary>
+        /// 属性description
+        /// </summary>
+        public string Description
+        {
+            get
+            {
+                try
+                {
+                    if (_autoRefresh)
+                    {
+                        _contextNode.Refresh();
+                    }
+
+                    return _contextNode.GetInfo().description;
+                }
+                catch (Exception)
+                {
+                    return string.Empty;
+                }
+            }
+        }
+
+        /// <summary>
+        /// 属性states
+        /// </summary>
+        public string States
+        {
+            get
+            {
+                try
+                {
+                    if (_autoRefresh)
+                    {
+                        _contextNode.Refresh();
+                    }
+
+                    return _contextNode.GetInfo().states_en_US;
+                }
+                catch (Exception)
+                {
+                    return string.Empty;
+                }
+            }
+        }
+
+        /// <summary>
+        /// 属性object_depth
+        /// </summary>
+        public int ObjectDepth
+        {
+            get
+            {
+                try
+                {
+                    if (_autoRefresh)
+                    {
+                        _contextNode.Refresh();
+                    }
+
+                    return _objBridge.Functions.GetObjectDepth(_contextNode.JvmId,
+                        _contextNode.AccessibleContextHandle);
+                }
+                catch (Exception)
+                {
+                    return -1;
+                }
+            }
+        }
+
+        /// <summary>
+        /// 属性index in parent
+        /// </summary>
+        public int IndexInParent
+        {
+            get
+            {
+                try
+                {
+                    if (_autoRefresh)
+                    {
+                        _contextNode.Refresh();
+                    }
+
+                    return _contextNode.GetInfo().indexInParent;
+                }
+                catch (Exception)
+                {
+                    return -1;
+                }
+            }
+        }
+
+        /// <summary>
+        /// 属性children count
+        /// </summary>
+        public int ChildrenCount
+        {
+            get
+            {
+                try
+                {
+                    if (_autoRefresh)
+                    {
+                        _contextNode.Refresh();
+                    }
+
+                    return _contextNode.GetInfo().childrenCount;
+                }
+                catch (Exception)
+                {
+                    return -1;
+                }
+            }
+        }
+
+        /// <summary>
+        /// 属性Text
+        /// </summary>
+        public string Text
+        {
+            get
+            {
+                try
+                {
+                    if (_autoRefresh)
+                    {
+                        _contextNode.Refresh();
+                    }
+
+                    if (_contextNode.GetInfo().accessibleText != 0)
+                    {
+                        AccessibleTextInfo textInfo;
+                        if (_objBridge.Functions.GetAccessibleTextInfo(_contextNode.JvmId,
+                                _contextNode.AccessibleContextHandle, out textInfo, 0, 0))
+                        {
+                            var reader = new AccessibleTextReader(_contextNode, textInfo.charCount);
+                            return reader.ReadToEnd();
+                        }
+                        else
+                        {
+                            return string.Empty;
+                        }
+                    }
+                    else
+                    {
+                        return string.Empty;
+                    }
+                }
+                catch (Exception)
+                {
+                    return string.Empty;
+                }
+            }
+        }
+
         /// <summary>
         /// 属性坐标x
         /// </summary>
-        public int position_x
+        public int PositionX
         {
             get
             {
-                try { if (_auto_refresh) { context_Node.Refresh(); } return context_Node.GetInfo().x; }
-                catch (Exception) { return -1; }
+                try
+                {
+                    if (_autoRefresh)
+                    {
+                        _contextNode.Refresh();
+                    }
+
+                    return _contextNode.GetInfo().x;
+                }
+                catch (Exception)
+                {
+                    return -1;
+                }
             }
         }
+
         /// <summary>
         /// 属性坐标y
         /// </summary>
-        public int position_y
+        public int PositionY
         {
             get
             {
-                try { if (_auto_refresh) { context_Node.Refresh(); } return context_Node.GetInfo().y; }
-                catch (Exception) { return -1; }
+                try
+                {
+                    if (_autoRefresh)
+                    {
+                        _contextNode.Refresh();
+                    }
+
+                    return _contextNode.GetInfo().y;
+                }
+                catch (Exception)
+                {
+                    return -1;
+                }
             }
         }
+
         /// <summary>
         /// 属性width
         /// </summary>
-        public int position_width
+        public int PositionWidth
         {
             get
             {
-                try { if (_auto_refresh) { context_Node.Refresh(); } return context_Node.GetInfo().width; }
-                catch (Exception) { return 0; }
+                try
+                {
+                    if (_autoRefresh)
+                    {
+                        _contextNode.Refresh();
+                    }
+
+                    return _contextNode.GetInfo().width;
+                }
+                catch (Exception)
+                {
+                    return 0;
+                }
             }
         }
+
         /// <summary>
         /// 属性height
         /// </summary>
-        public int position_height
+        public int PositionHeight
         {
             get
             {
-                try { if (_auto_refresh) { context_Node.Refresh(); } return context_Node.GetInfo().height; }
-                catch (Exception) { return 0; }
+                try
+                {
+                    if (_autoRefresh)
+                    {
+                        _contextNode.Refresh();
+                    }
+
+                    return _contextNode.GetInfo().height;
+                }
+                catch (Exception)
+                {
+                    return 0;
+                }
             }
         }
 
@@ -208,16 +348,10 @@ namespace BasicJab
         /// 自动刷新默认为False 
         /// 当设置为True，获取类属性如Name，Role等会先刷新节点
         /// </summary>
-        public bool auto_refresh
+        public bool AutoRefresh
         {
-            get
-            {
-                return _auto_refresh;
-            }
-            set
-            {
-                _auto_refresh = value;
-            }
+            get => _autoRefresh;
+            set => _autoRefresh = value;
         }
 
         /// <summary>
@@ -226,54 +360,58 @@ namespace BasicJab
         /// <returns></returns>
         public JabElement GetParentElement()
         {
-            context_Node.Refresh();
-            var parent_ac =
-                objBridge.Functions.GetAccessibleParentFromContext
-                (context_Node.JvmId,
-                context_Node.AccessibleContextHandle);
+            _contextNode.Refresh();
+            var parentAc =
+                _objBridge.Functions.GetAccessibleParentFromContext
+                (_contextNode.JvmId,
+                    _contextNode.AccessibleContextHandle);
 
-            if (parent_ac.IsNull) return null;
-            return new JabElement(new AccessibleContextNode(objBridge, parent_ac), hwnd);
+            if (parentAc.IsNull) return null;
+            return new JabElement(new AccessibleContextNode(_objBridge, parentAc), _hwnd);
         }
 
         /// <summary>
         /// 用Name查找特定的一个JabElement
         /// </summary>
         /// <param name="strName"></param>
+        /// <param name="regexMatch"></param>
         /// <returns></returns>
         public JabElement FindElementByName(string strName, bool regexMatch = false)
         {
-            return Find_Element(BY.NAME, strName, regexMatch);
+            return Find_Element(By.NAME, strName, regexMatch);
         }
 
         /// <summary>
         /// 用Role查找特定的一个JabElement
         /// </summary>
         /// <param name="strRole"></param>
+        /// <param name="regexMatch"></param>
         /// <returns></returns>
         public JabElement FindElementByRole(string strRole, bool regexMatch = false)
         {
-            return Find_Element(BY.ROLE, strRole, regexMatch);
+            return Find_Element(By.ROLE, strRole, regexMatch);
         }
 
         /// <summary>
         /// 用Description查找特定的一个JabElement
         /// </summary>
         /// <param name="strDescription"></param>
+        /// <param name="regexMatch"></param>
         /// <returns></returns>
         public JabElement FindElementByDescription(string strDescription, bool regexMatch = false)
         {
-            return Find_Element(BY.DESCRIPTION, strDescription, regexMatch);
+            return Find_Element(By.DESCRIPTION, strDescription, regexMatch);
         }
 
         /// <summary>
         /// 用State查找特定的一个JabElement
         /// </summary>
         /// <param name="strState"></param>
+        /// <param name="regexMatch"></param>
         /// <returns></returns>
         public JabElement FindElementByState(string strState, bool regexMatch = false)
         {
-            return Find_Element(BY.ROLE, strState, regexMatch);
+            return Find_Element(By.ROLE, strState, regexMatch);
         }
 
         /// <summary>
@@ -284,7 +422,7 @@ namespace BasicJab
         public JabElement FindElementByObjectDepth(int objectDepth)
         {
             if (objectDepth < 0) return null;
-            return Find_Element(BY.OBJECT_DEPTH, objectDepth);
+            return Find_Element(By.OBJECT_DEPTH, objectDepth);
         }
 
         /// <summary>
@@ -295,7 +433,7 @@ namespace BasicJab
         public JabElement FindElementByIndexInParent(int index)
         {
             if (index < 0) return null;
-            return Find_Element(BY.INDEX_IN_PARENT, index);
+            return Find_Element(By.INDEX_IN_PARENT, index);
         }
 
         /// <summary>
@@ -306,7 +444,7 @@ namespace BasicJab
         public JabElement FindElementByChildrenCount(int count)
         {
             if (count < 0) return null;
-            return Find_Element(BY.CHILDREN_COUNT, count);
+            return Find_Element(By.CHILDREN_COUNT, count);
         }
 
         /// <summary>
@@ -317,13 +455,15 @@ namespace BasicJab
         /// <returns></returns>
         public JabElement FindElementByXPath(string strXpath)
         {
-            var topAC = objBridge.Functions.GetTopLevelObject(context_Node.JvmId, context_Node.AccessibleContextHandle);
-            if (topAC.IsNull)
+            var topAc = _objBridge.Functions.GetTopLevelObject(_contextNode.JvmId,
+                _contextNode.AccessibleContextHandle);
+            if (topAc.IsNull)
             {
                 throw new InvalidOperationException("Can not Find Root Element");
             }
+
             //找到root节点并初始化Element为对象
-            JabElement root = new JabElement(new AccessibleContextNode(objBridge, topAC), hwnd);
+            JabElement root = new JabElement(new AccessibleContextNode(_objBridge, topAc), _hwnd);
             //Debug.WriteLine(root.role);
             Dictionary<string, JabElement> dic = new Dictionary<string, JabElement>();
             XmlDocument doc = new XmlDocument();
@@ -331,7 +471,7 @@ namespace BasicJab
 
 
             //从root节点开始，读取所有子节点，写入到xml中  递归
-            XmlElement rootXmlElement = doc.CreateElement(root.role);
+            XmlElement rootXmlElement = doc.CreateElement(root.Role);
             rootXmlElement = Xml_Element_Create(doc, rootXmlElement, ref dic, ref id, root, this);
             doc.AppendChild(rootXmlElement);
 
@@ -358,10 +498,11 @@ namespace BasicJab
         /// 用Name查找一组JabElement
         /// </summary>
         /// <param name="strName"></param>
+        /// <param name="regexMatch"></param>
         /// <returns></returns>
         public JabElement[] FindElementsByName(string strName, bool regexMatch = false)
         {
-            List<JabElement> result = Find_Elements(BY.NAME, strName, regexMatch);
+            List<JabElement> result = Find_Elements(By.NAME, strName, regexMatch);
             return result.ToArray();
         }
 
@@ -369,10 +510,11 @@ namespace BasicJab
         /// 用Role查找一组JabElement
         /// </summary>
         /// <param name="strRole"></param>
+        /// <param name="regexMatch"></param>
         /// <returns></returns>
         public JabElement[] FindElementsByRole(string strRole, bool regexMatch = false)
         {
-            List<JabElement> result = Find_Elements(BY.ROLE, strRole, regexMatch);
+            List<JabElement> result = Find_Elements(By.ROLE, strRole, regexMatch);
             return result.ToArray();
         }
 
@@ -380,10 +522,11 @@ namespace BasicJab
         /// 用Description查找一组JabElement
         /// </summary>
         /// <param name="strDescription"></param>
+        /// <param name="regexMatch"></param>
         /// <returns></returns>
         public JabElement[] FindElementsByDescription(string strDescription, bool regexMatch = false)
         {
-            List<JabElement> result = Find_Elements(BY.DESCRIPTION, strDescription, regexMatch);
+            List<JabElement> result = Find_Elements(By.DESCRIPTION, strDescription, regexMatch);
             return result.ToArray();
         }
 
@@ -391,10 +534,11 @@ namespace BasicJab
         /// 用State查找一组JabElement
         /// </summary>
         /// <param name="strState"></param>
+        /// <param name="regexMatch"></param>
         /// <returns></returns>
         public JabElement[] FindElementsByState(string strState, bool regexMatch = false)
         {
-            List<JabElement> result = Find_Elements(BY.STATES, strState, regexMatch);
+            List<JabElement> result = Find_Elements(By.STATES, strState, regexMatch);
             return result.ToArray();
         }
 
@@ -406,7 +550,7 @@ namespace BasicJab
         public JabElement[] FindElementsByObjectDepth(int objectDepth)
         {
             if (objectDepth < 0) return new List<JabElement>().ToArray();
-            List<JabElement> result = Find_Elements(BY.OBJECT_DEPTH, objectDepth);
+            List<JabElement> result = Find_Elements(By.OBJECT_DEPTH, objectDepth);
             return result.ToArray();
         }
 
@@ -418,7 +562,7 @@ namespace BasicJab
         public JabElement[] FindElementsByIndexInParent(int index)
         {
             if (index < 0) return new List<JabElement>().ToArray();
-            List<JabElement> result = Find_Elements(BY.INDEX_IN_PARENT, index);
+            List<JabElement> result = Find_Elements(By.INDEX_IN_PARENT, index);
             return result.ToArray();
         }
 
@@ -430,7 +574,7 @@ namespace BasicJab
         public JabElement[] FindElementsByChildrenCount(int count)
         {
             if (count < 0) return new List<JabElement>().ToArray();
-            List<JabElement> result = Find_Elements(BY.CHILDREN_COUNT, count);
+            List<JabElement> result = Find_Elements(By.CHILDREN_COUNT, count);
             return result.ToArray();
         }
 
@@ -444,21 +588,23 @@ namespace BasicJab
         {
             List<JabElement> result = new List<JabElement>();
 
-            var topAC = objBridge.Functions.GetTopLevelObject(context_Node.JvmId, context_Node.AccessibleContextHandle);
-            if (topAC.IsNull)
+            var topAc = _objBridge.Functions.GetTopLevelObject(_contextNode.JvmId,
+                _contextNode.AccessibleContextHandle);
+            if (topAc.IsNull)
             {
                 throw new InvalidOperationException("Can not Find Root Element");
             }
+
             //找到root节点并初始化Element为对象
-            JabElement root = new JabElement(new AccessibleContextNode(objBridge, topAC), hwnd);
-            Debug.WriteLine(root.role);
+            JabElement root = new JabElement(new AccessibleContextNode(_objBridge, topAc), _hwnd);
+            Debug.WriteLine(root.Role);
             Dictionary<string, JabElement> dic = new Dictionary<string, JabElement>();
             XmlDocument doc = new XmlDocument();
             string id = string.Empty;
 
 
             //从root节点开始，读取所有子节点，写入到xml中  递归
-            XmlElement rootXmlElement = doc.CreateElement(root.role);
+            XmlElement rootXmlElement = doc.CreateElement(root.Role);
             rootXmlElement = Xml_Element_Create(doc, rootXmlElement, ref dic, ref id, root, this);
             doc.AppendChild(rootXmlElement);
 
@@ -478,6 +624,7 @@ namespace BasicJab
             {
                 Debug.WriteLine(err.Message);
             }
+
             return result.ToArray();
         }
 
@@ -486,11 +633,12 @@ namespace BasicJab
         /// </summary>
         /// <param name="byWhat"></param>
         /// <param name="value"></param>
+        /// <param name="regexMatch"></param>
         /// <returns></returns>
-        private JabElement Find_Element(BY byWhat, object value, bool regexMatch = false)
+        private JabElement Find_Element(By byWhat, object value, bool regexMatch = false)
         {
-            context_Node.Refresh();
-            if (byWhat == BY.XPATH)
+            _contextNode.Refresh();
+            if (byWhat == By.XPATH)
             {
                 return FindElementByXPath((string)value);
             }
@@ -498,21 +646,20 @@ namespace BasicJab
             {
                 if (!regexMatch)
                 {
-                    foreach (JabElement ele in _generate_all_childs(this))
+                    foreach (JabElement ele in _generate_all_children(this))
                     {
                         if (_is_element_matched(ele, byWhat, value)) return ele;
                     }
                 }
                 else
                 {
-                    foreach (JabElement ele in _generate_all_childs(this))
+                    foreach (JabElement ele in _generate_all_children(this))
                     {
                         if (_is_element_regex_matched(ele, byWhat, value)) return ele;
                     }
                 }
 
                 return null;
-
             }
         }
 
@@ -521,9 +668,11 @@ namespace BasicJab
         /// </summary>
         /// <param name="byWhat"></param>
         /// <param name="value"></param>
-        /// <param name="timeout"></param>
+        /// <param name="regexMatch"></param>
+        /// <param name="timeoutSecond"></param>
         /// <returns></returns>
-        public JabElement WaitUntilElementExists(BY byWhat, object value, bool regexMatch = false, int timeoutSecond = 5)
+        public JabElement WaitUntilElementExists(By byWhat, object value, bool regexMatch = false,
+            int timeoutSecond = 5)
         {
             long startTick = DateTime.Now.Ticks;
             JabElement result = null;
@@ -531,34 +680,35 @@ namespace BasicJab
             {
                 switch (byWhat)
                 {
-                    case BY.NAME:
+                    case By.NAME:
                         result = FindElementByName((string)value, regexMatch);
                         break;
-                    case BY.ROLE:
+                    case By.ROLE:
                         result = FindElementByRole((string)value, regexMatch);
                         break;
-                    case BY.STATES:
+                    case By.STATES:
                         result = FindElementByState((string)value, regexMatch);
                         break;
-                    case BY.DESCRIPTION:
+                    case By.DESCRIPTION:
                         result = FindElementByDescription((string)value, regexMatch);
                         break;
-                    case BY.OBJECT_DEPTH:
+                    case By.OBJECT_DEPTH:
                         result = FindElementByObjectDepth((int)value);
                         break;
-                    case BY.INDEX_IN_PARENT:
+                    case By.INDEX_IN_PARENT:
                         result = FindElementByIndexInParent((int)value);
                         break;
-                    case BY.CHILDREN_COUNT:
+                    case By.CHILDREN_COUNT:
                         result = FindElementByChildrenCount((int)value);
                         break;
-                    case BY.XPATH:
+                    case By.XPATH:
                         result = FindElementByXPath((string)value);
                         break;
                 }
+
                 if (result != null) return result;
 
-                long elapsedTicks = DateTime.Now.Ticks - startTick;
+                var elapsedTicks = DateTime.Now.Ticks - startTick;
                 if (new TimeSpan(elapsedTicks).TotalSeconds > timeoutSecond)
                 {
                     return null;
@@ -574,14 +724,14 @@ namespace BasicJab
         {
             try
             {
-                var acc = objBridge.Functions.GetAccessibleSelectionFromContext(context_Node.JvmId,context_Node.AccessibleContextHandle, 0);
-                return new JabElement(new AccessibleContextNode(objBridge, acc), hwnd);
+                var acc = _objBridge.Functions.GetAccessibleSelectionFromContext(_contextNode.JvmId,
+                    _contextNode.AccessibleContextHandle, 0);
+                return new JabElement(new AccessibleContextNode(_objBridge, acc), _hwnd);
             }
             catch (Exception)
             {
                 return null;
             }
-            
         }
 
         /// <summary>
@@ -589,11 +739,12 @@ namespace BasicJab
         /// </summary>
         /// <param name="byWhat"></param>
         /// <param name="value"></param>
+        /// <param name="regexMatch"></param>
         /// <returns></returns>
-        private List<JabElement> Find_Elements(BY byWhat, object value, bool regexMatch = false)
+        private List<JabElement> Find_Elements(By byWhat, object value, bool regexMatch = false)
         {
-            context_Node.Refresh();
-            if (byWhat == BY.XPATH)
+            _contextNode.Refresh();
+            if (byWhat == By.XPATH)
             {
                 return FindElementsByXPath((string)value).ToList();
             }
@@ -603,7 +754,7 @@ namespace BasicJab
 
                 if (!regexMatch)
                 {
-                    foreach (JabElement ele in _generate_all_childs(this))
+                    foreach (JabElement ele in _generate_all_children(this))
                     {
                         if (_is_element_matched(ele, byWhat, value))
                         {
@@ -614,7 +765,7 @@ namespace BasicJab
                 }
                 else
                 {
-                    foreach (JabElement ele in _generate_all_childs(this))
+                    foreach (JabElement ele in _generate_all_children(this))
                     {
                         if (_is_element_regex_matched(ele, byWhat, value))
                         {
@@ -632,41 +783,42 @@ namespace BasicJab
         /// 这是一个递归的方法  将JabElement下的所有子节点写入xml里面
         /// </summary>
         /// <param name="doc"></param>
-        /// <param name="ParentElement"></param>
+        /// <param name="parentElement"></param>
         /// <param name="dic"></param>
         /// <param name="id"></param>
         /// <param name="root"></param>
         /// <param name="curEle"></param>
         /// <returns></returns>
-        private XmlElement Xml_Element_Create(XmlDocument doc, XmlElement ParentElement,
+        private XmlElement Xml_Element_Create(XmlDocument doc, XmlElement parentElement,
             ref Dictionary<string, JabElement> dic,
             ref string id, JabElement root, JabElement curEle = null)
         {
-            dic.Add(root.elementID, root);
+            dic.Add(root.elementId, root);
 
             if (curEle != null)
             {
-                if (objBridge.Functions.IsSameObject(context_Node.JvmId, root.context_Node.AccessibleContextHandle, curEle.context_Node.AccessibleContextHandle))
+                if (_objBridge.Functions.IsSameObject(_contextNode.JvmId, root._contextNode.AccessibleContextHandle,
+                        curEle._contextNode.AccessibleContextHandle))
                 {
-                    id = root.elementID;
+                    id = root.elementId;
                 }
             }
 
-            //text 写入 innnerText里面 ，xpath查找时要这样写  //*[text()='123']
-            ParentElement.InnerText = root.text;
+            //text 写入 innerText里面 ，xpath查找时要这样写  //*[text()='123']
+            parentElement.InnerText = root.Text;
             //添加其余一般属性
-            ParentElement.SetAttribute("INTERNAL_GUID", root.elementID);
-            ParentElement.SetAttribute("name", root.name);
-            ParentElement.SetAttribute("description", root.description);
-            ParentElement.SetAttribute("states", root.states);
-            ParentElement.SetAttribute("object_depth", root.object_depth.ToString());
-            ParentElement.SetAttribute("index_in_parent", root.index_in_parent.ToString());
-            ParentElement.SetAttribute("children_count", root.children_count.ToString());
+            parentElement.SetAttribute("INTERNAL_GUID", root.elementId);
+            parentElement.SetAttribute("name", root.Name);
+            parentElement.SetAttribute("description", root.Description);
+            parentElement.SetAttribute("states", root.States);
+            parentElement.SetAttribute("object_depth", root.ObjectDepth.ToString());
+            parentElement.SetAttribute("index_in_parent", root.IndexInParent.ToString());
+            parentElement.SetAttribute("children_count", root.ChildrenCount.ToString());
 
             //遍历子节点，递归写入xml
-            foreach (JabElement ele in _generate_childs_from_element(root))
+            foreach (JabElement ele in _generate_children_from_element(root))
             {
-                XmlElement child = doc.CreateElement(ele.role);
+                XmlElement child = doc.CreateElement(ele.Role);
 
                 if (id == string.Empty)
                 {
@@ -676,9 +828,11 @@ namespace BasicJab
                 {
                     child = Xml_Element_Create(doc, child, ref dic, ref id, ele);
                 }
-                ParentElement.AppendChild(child);
+
+                parentElement.AppendChild(child);
             }
-            return ParentElement;
+
+            return parentElement;
         }
 
         /// <summary>
@@ -686,14 +840,14 @@ namespace BasicJab
         /// </summary>
         /// <param name="ele"></param>
         /// <returns></returns>
-        private IEnumerable<JabElement> _generate_all_childs(JabElement ele)
+        private IEnumerable<JabElement> _generate_all_children(JabElement ele)
         {
-            foreach (JabElement _ele in _generate_childs_from_element(ele))
+            foreach (JabElement _ele in _generate_children_from_element(ele))
             {
                 yield return _ele;
-                if (_ele.children_count > 0)
+                if (_ele.ChildrenCount > 0)
                 {
-                    foreach (JabElement child in _generate_all_childs(_ele))
+                    foreach (JabElement child in _generate_all_children(_ele))
                     {
                         yield return child;
                     }
@@ -706,13 +860,13 @@ namespace BasicJab
         /// </summary>
         /// <param name="ele"></param>
         /// <returns></returns>
-        private IEnumerable<JabElement> _generate_childs_from_element(JabElement ele)
+        private IEnumerable<JabElement> _generate_children_from_element(JabElement ele)
         {
-            foreach (AccessibleContextNode node in ele.context_Node.GetChildren())
+            foreach (var accessibleNode in ele._contextNode.GetChildren())
             {
-                yield return new JabElement(node, hwnd);
+                var node = (AccessibleContextNode)accessibleNode;
+                yield return new JabElement(node, _hwnd);
             }
-
         }
 
         /// <summary>
@@ -722,24 +876,24 @@ namespace BasicJab
         /// <param name="byWhat"></param>
         /// <param name="value"></param>
         /// <returns></returns>
-        private bool _is_element_matched(JabElement ele, BY byWhat, object value)
+        private bool _is_element_matched(JabElement ele, By byWhat, object value)
         {
             switch (byWhat)
             {
-                case BY.NAME:
-                    return ele.name == (string)value;
-                case BY.DESCRIPTION:
-                    return ele.description == (string)value;
-                case BY.ROLE:
-                    return ele.role == (string)value;
-                case BY.STATES:
-                    return ele.states == (string)value;
-                case BY.OBJECT_DEPTH:
-                    return ele.object_depth == (int)value;
-                case BY.CHILDREN_COUNT:
-                    return ele.children_count == (int)value;
-                case BY.INDEX_IN_PARENT:
-                    return ele.index_in_parent == (int)value;
+                case By.NAME:
+                    return ele.Name == (string)value;
+                case By.DESCRIPTION:
+                    return ele.Description == (string)value;
+                case By.ROLE:
+                    return ele.Role == (string)value;
+                case By.STATES:
+                    return ele.States == (string)value;
+                case By.OBJECT_DEPTH:
+                    return ele.ObjectDepth == (int)value;
+                case By.CHILDREN_COUNT:
+                    return ele.ChildrenCount == (int)value;
+                case By.INDEX_IN_PARENT:
+                    return ele.IndexInParent == (int)value;
                 default:
                     return false;
             }
@@ -752,26 +906,26 @@ namespace BasicJab
         /// <param name="byWhat"></param>
         /// <param name="value"></param>
         /// <returns></returns>
-        private bool _is_element_regex_matched(JabElement ele, BY byWhat, object value)
+        private bool _is_element_regex_matched(JabElement ele, By byWhat, object value)
         {
             switch (byWhat)
             {
-                case BY.NAME:
-                    return new Regex((string)@value).IsMatch(ele.name);
-                case BY.DESCRIPTION:
-                    return new Regex((string)@value).IsMatch(ele.description);
-                case BY.ROLE:
-                    return new Regex((string)@value).IsMatch(ele.role);
-                case BY.STATES:
-                    return new Regex((string)@value).IsMatch(ele.name);
+                case By.NAME:
+                    return new Regex((string)@value).IsMatch(ele.Name);
+                case By.DESCRIPTION:
+                    return new Regex((string)@value).IsMatch(ele.Description);
+                case By.ROLE:
+                    return new Regex((string)@value).IsMatch(ele.Role);
+                case By.STATES:
+                    return new Regex((string)@value).IsMatch(ele.Name);
 
                 //以下非字符串属性不能用正则匹配
-                case BY.OBJECT_DEPTH:
-                    return ele.object_depth == (int)value;
-                case BY.CHILDREN_COUNT:
-                    return ele.children_count == (int)value;
-                case BY.INDEX_IN_PARENT:
-                    return ele.index_in_parent == (int)value;
+                case By.OBJECT_DEPTH:
+                    return ele.ObjectDepth == (int)value;
+                case By.CHILDREN_COUNT:
+                    return ele.ChildrenCount == (int)value;
+                case By.INDEX_IN_PARENT:
+                    return ele.IndexInParent == (int)value;
                 default:
                     return false;
             }
@@ -783,40 +937,43 @@ namespace BasicJab
         /// <returns></returns>
         public bool Request_Focus()
         {
-            return objBridge.Functions.RequestFocus(context_Node.JvmId, context_Node.AccessibleContextHandle);
+            return _objBridge.Functions.RequestFocus(_contextNode.JvmId, _contextNode.AccessibleContextHandle);
         }
 
         /// <summary>
         /// /展开操作 
         /// </summary>
-        /// <param name="isSimulate"></param>
         public void Expand()
         {
-            if (!states.Contains("expandable"))
+            if (!States.Contains("expandable"))
             {
-                throw new InvalidOperationException("Element dosen't support \"Expand\" Action");
+                throw new InvalidOperationException("Element doesn't support \"Expand\" Action");
             }
+
             Do_Accessible_Action("toggleexpand");
         }
 
         /// <summary>
         /// 点击Element 方法，可以设置是否使用模拟点击
         /// </summary>
-        public void Click(bool isSimulate = false, bool detect_scaling = false)
+        /// <param name="isSimulate"></param>
+        /// <param name="detectScaling"></param>
+        /// <exception cref="InvalidOperationException"></exception>
+        public void Click(bool isSimulate = false, bool detectScaling = false)
         {
             if (isSimulate)
             {
-                api.SetTopWindow(hwnd);
+                Win32Api.SetTopWindow(_hwnd);
                 Request_Focus();
-                if (position_height == 0 || position_width == 0)
+                if (PositionHeight == 0 || PositionWidth == 0)
                 {
                     throw new InvalidOperationException("Element height or width can not equal to Zero!");
                 }
 
-                int r_x = (int)Math.Round(position_x + (double)position_width / 2);
-                int r_y = (int)Math.Round(position_y + (double)position_height / 2);
-                if (detect_scaling) api.ConvertPoint_LogicalToPhysical(ref r_x, ref r_y);
-                api.Mouse_Click(r_x, r_y);
+                int r_x = (int)Math.Round(PositionX + (double)PositionWidth / 2);
+                int r_y = (int)Math.Round(PositionY + (double)PositionHeight / 2);
+                if (detectScaling) Win32Api.ConvertPoint_LogicalToPhysical(ref r_x, ref r_y);
+                Win32Api.Mouse_Click(r_x, r_y);
             }
             else
             {
@@ -838,15 +995,15 @@ namespace BasicJab
         {
             if (isSimulate)
             {
-                api.SetTopWindow(hwnd);
+                Win32Api.SetTopWindow(_hwnd);
                 Request_Focus();
-                if (text != string.Empty && context_Node.GetInfo().accessibleText != 0)
+                if (Text != string.Empty && _contextNode.GetInfo().accessibleText != 0)
                 {
                     //通过以下操作全选文本
                     SendKeys.SendWait("{HOME}");
-                    SendKeys.SendWait("^+{END}");  //ctrl+shift+end
+                    SendKeys.SendWait("^+{END}"); //ctrl+shift+end
 
-                    for (int i = 0; i < 50; i++)   //保险起见 循环50次 输入 退格 正常一次就够
+                    for (int i = 0; i < 50; i++) //保险起见 循环50次 输入 退格 正常一次就够
                     {
                         SendKeys.SendWait("{BACKSPACE}");
                     }
@@ -856,7 +1013,6 @@ namespace BasicJab
             {
                 Send_Text(string.Empty, false);
             }
-
         }
 
         /// <summary>
@@ -864,45 +1020,62 @@ namespace BasicJab
         /// </summary>
         /// <param name="value"></param>
         /// <param name="isSimulate"></param>
+        /// <param name="isEscape"></param>
         public void Send_Text(string value, bool isSimulate = false, bool isEscape = false)
         {
             if (isSimulate)
             {
-                api.SetTopWindow(hwnd);
+                Win32Api.SetTopWindow(_hwnd);
                 Request_Focus();
                 if (isEscape)
                 {
                     foreach (char c in value)
                     {
-                        if (c.ToString() == "(")
-                            SendKeys.SendWait("{(}");
-                        else if (c.ToString() == ")")
-                            SendKeys.SendWait("{)}");
-                        else if (c.ToString() == "^")
-                            SendKeys.SendWait("{^}");
-                        else if (c.ToString() == "+")
-                            SendKeys.SendWait("{+}");
-                        else if (c.ToString() == "%")
-                            SendKeys.SendWait("{%}");
-                        else if (c.ToString() == "~")
-                            SendKeys.SendWait("{~}");
-                        else if (c.ToString() == "{")
-                            SendKeys.SendWait("{{}");
-                        else if (c.ToString() == "}")
-                            SendKeys.SendWait("{}}");
-                        else
-                            SendKeys.SendWait(c.ToString());
+                        switch (c.ToString())
+                        {
+                            case "(":
+                                SendKeys.SendWait("{(}");
+                                break;
+                            case ")":
+                                SendKeys.SendWait("{)}");
+                                break;
+                            case "^":
+                                SendKeys.SendWait("{^}");
+                                break;
+                            case "+":
+                                SendKeys.SendWait("{+}");
+                                break;
+                            case "%":
+                                SendKeys.SendWait("{%}");
+                                break;
+                            case "~":
+                                SendKeys.SendWait("{~}");
+                                break;
+                            case "{":
+                                SendKeys.SendWait("{{}");
+                                break;
+                            case "}":
+                                SendKeys.SendWait("{}}");
+                                break;
+                            default:
+                                SendKeys.SendWait(c.ToString());
+                                break;
+                        }
                     }
                 }
-                else { SendKeys.SendWait(value); }
-
+                else
+                {
+                    SendKeys.SendWait(value);
+                }
             }
             else
             {
-                bool result = objBridge.Functions.SetTextContents(context_Node.JvmId, context_Node.AccessibleContextHandle, value);
+                bool result = _objBridge.Functions.SetTextContents(_contextNode.JvmId,
+                    _contextNode.AccessibleContextHandle, value);
                 if (!result)
                 {
-                    throw new InvalidOperationException("JAB Function 'SetTextContents' Failed!\nTry set parameter 'isSimulate' With 'True'!");
+                    throw new InvalidOperationException(
+                        "JAB Function 'SetTextContents' Failed!\nTry set parameter 'isSimulate' With 'True'!");
                 }
             }
         }
@@ -913,87 +1086,89 @@ namespace BasicJab
         /// <param name="value"></param>
         public void Paste_Text(string value)
         {
-            Clipboard_Util util = new Clipboard_Util();
-            util.SetText(value);
-            api.SetTopWindow(hwnd);
+            Clipboard_Util.SetText(value);
+            Win32Api.SetTopWindow(_hwnd);
             Request_Focus();
-            SendKeys.SendWait("^{v}");    //ctrl+v
+            SendKeys.SendWait("^{v}"); //ctrl+v
             Delay(200);
         }
-        
+
         /// <summary>
         /// 获取Table 指定index的cell
         /// </summary>
         /// <param name="rowIndex"></param>
-        /// <param name="ColumnIndex"></param>
+        /// <param name="columnIndex"></param>
         /// <returns></returns>
-        public JabElement Get_Table_Cell(int rowIndex, int ColumnIndex)
+        public JabElement Get_Table_Cell(int rowIndex, int columnIndex)
         {
-            if (!role.ToLower().Equals("table"))
+            if (!Role.ToLower().Equals("table"))
             {
                 throw new InvalidOperationException("Current JabElement is not a Table!");
             }
 
-            AccessibleTableInfo Table_Info = new AccessibleTableInfo();
-            if(!objBridge.Functions.GetAccessibleTableInfo(context_Node.JvmId, context_Node.AccessibleContextHandle, out Table_Info))
+            AccessibleTableInfo tableInfo = new AccessibleTableInfo();
+            if (!_objBridge.Functions.GetAccessibleTableInfo(_contextNode.JvmId, _contextNode.AccessibleContextHandle,
+                    out tableInfo))
             {
                 throw new InvalidOperationException("can not get table info!");
             }
 
-            AccessibleTableCellInfo Cell_Info = new AccessibleTableCellInfo();
-            if(!objBridge.Functions.GetAccessibleTableCellInfo(context_Node.JvmId,Table_Info.accessibleTable,rowIndex,ColumnIndex, out Cell_Info))
+            AccessibleTableCellInfo cellInfo = new AccessibleTableCellInfo();
+            if (!_objBridge.Functions.GetAccessibleTableCellInfo(_contextNode.JvmId, tableInfo.accessibleTable,
+                    rowIndex, columnIndex, out cellInfo))
             {
                 throw new InvalidOperationException("can not get table cell info!");
             }
-            return new JabElement(new AccessibleContextNode(objBridge,Cell_Info.accessibleContext), hwnd);
+
+            return new JabElement(new AccessibleContextNode(_objBridge, cellInfo.accessibleContext), _hwnd);
         }
 
         public bool IsChecked()
         {
-            context_Node.Refresh();
-            return states.Contains("checked");
+            _contextNode.Refresh();
+            return States.Contains("checked");
         }
 
         public bool IsEnabled()
         {
-            context_Node.Refresh();
-            return states.Contains("enabled");
+            _contextNode.Refresh();
+            return States.Contains("enabled");
         }
 
         public bool IsVisible()
         {
-            context_Node.Refresh();
-            return states.Contains("visible");
+            _contextNode.Refresh();
+            return States.Contains("visible");
         }
 
         public bool IsShowing()
         {
-            context_Node.Refresh();
-            return states.Contains("showing");
+            _contextNode.Refresh();
+            return States.Contains("showing");
         }
 
         public bool IsSelected()
         {
-            context_Node.Refresh();
-            return states.Contains("selected");
+            _contextNode.Refresh();
+            return States.Contains("selected");
         }
 
         public bool IsEditable()
         {
-            context_Node.Refresh();
-            return states.Contains("editable");
+            _contextNode.Refresh();
+            return States.Contains("editable");
         }
 
         public bool IsActive()
         {
-            context_Node.Refresh();
-            return states.Contains("active");
+            _contextNode.Refresh();
+            return States.Contains("active");
         }
 
         public bool IsFocusable()
         {
-            context_Node.Refresh();
-            return states.Contains("focusable");
+            _contextNode.Refresh();
+            return States.Contains("focusable");
         }
 
         /// <summary>
@@ -1013,20 +1188,20 @@ namespace BasicJab
         /// <returns></returns>
         private bool Do_Accessible_Action(string action)
         {
-            if (acc_Action.actionsCount <= 0) return false;
+            if (_accAction.actionsCount <= 0) return false;
 
-            AccessibleActionInfo[] infoArr = acc_Action.actionInfo;
+            AccessibleActionInfo[] infoArr = _accAction.actionInfo;
             int actQueryCount =
                 (from info in infoArr
-                 where info.name.ToLower() == action.ToLower()
-                 select info).Count();
+                    where info.name.ToLower() == action.ToLower()
+                    select info).Count();
 
             if (actQueryCount <= 0) return false;
 
             AccessibleActionInfo targetActionInfo =
                 (from info in infoArr
-                 where info.name.ToLower() == action.ToLower()
-                 select info).First();
+                    where info.name.ToLower() == action.ToLower()
+                    select info).First();
 
             AccessibleActionsToDo todo = new AccessibleActionsToDo();
             todo.actions = new AccessibleActionInfo[32];
@@ -1034,7 +1209,8 @@ namespace BasicJab
             todo.actionsCount = 1;
 
             int hrResult;
-            return objBridge.Functions.DoAccessibleActions(context_Node.JvmId, context_Node.AccessibleContextHandle, ref todo, out hrResult);
+            return _objBridge.Functions.DoAccessibleActions(_contextNode.JvmId, _contextNode.AccessibleContextHandle,
+                ref todo, out hrResult);
         }
 
         /// <summary>
@@ -1042,7 +1218,7 @@ namespace BasicJab
         /// </summary>
         private void Delay(int milliseconds)
         {
-            long startTick = DateTime.Now.Ticks;
+            var startTick = DateTime.Now.Ticks;
             while (true)
             {
                 if (new TimeSpan(DateTime.Now.Ticks - startTick).TotalMilliseconds > milliseconds) return;
@@ -1056,15 +1232,8 @@ namespace BasicJab
         /// <returns></returns>
         public bool Equals(JabElement ele)
         {
-            if (objBridge.Functions.IsSameObject(context_Node.JvmId, context_Node.AccessibleContextHandle, ele.context_Node.AccessibleContextHandle))
-            {
-                return true;
-            }
-            else
-            {
-                return false;
-            }
+            return _objBridge.Functions.IsSameObject(_contextNode.JvmId, _contextNode.AccessibleContextHandle,
+                ele._contextNode.AccessibleContextHandle);
         }
-
     }
 }

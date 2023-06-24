@@ -1,38 +1,37 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
+﻿using System.ComponentModel;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
+
 
 namespace BasicJab.ComInterface
 {
+    /// <summary>
+    /// JabElement对应的Com接口
+    /// </summary>
     [Guid("7BCD5087-584E-48AF-AF9B-AA0CDFFDC0ED")]
     [ComVisible(true), InterfaceType(ComInterfaceType.InterfaceIsDual)]
     public interface IJabElement
     {
-        string name { get; }
+        string Name { get; }
 
-        string role
+        string Role
         {
             [Description("注意，程序已将 Role 的空格全部替换为下划线")]
             get;
         }
 
-        string description { get; }
-        string states { get; }
-        int object_depth { get; }
-        int index_in_parent { get; }
-        int children_count { get; }
-        string text { get; }
+        string Description { get; }
+        string States { get; }
+        int ObjectDepth { get; }
+        int IndexInParent { get; }
+        int ChildrenCount { get; }
+        string Text { get; }
 
-        int position_x { get; }
-        int position_y { get; }
-        int position_width { get; }
-        int position_height { get; }
+        int PositionX { get; }
+        int PositionY { get; }
+        int PositionWidth { get; }
+        int PositionHeight { get; }
 
-        bool auto_refresh
+        bool AutoRefresh
         {
             [Description("自动刷新默认为False \r\n当设置为True，获取类属性如Name，Role等会先刷新节点")]
             get;
@@ -70,7 +69,7 @@ namespace BasicJab.ComInterface
         [Description("Xpath会遍历所有节点，开销较大，建议少用")]
         JabElement[] FindElementsByXPath(string strXPath);
 
-        JabElement WaitUntilElementExists(BY byWhat, object value, bool regexMatch = false, int timeoutSecond = 5);
+        JabElement WaitUntilElementExists(By byWhat, object value, bool regexMatch = false, int timeoutSecond = 5);
 
         [Description("返回被选中的第一个Element\r\n 一般用于以下Role:\r\n combo_box\r\n list \r\n page_tab_list")]
         JabElement GetSelectedElement();
@@ -79,7 +78,7 @@ namespace BasicJab.ComInterface
         bool Request_Focus();
         void Expand();
         [Description("单击行为 \r\n可以设置是否模拟单击 \r\n是否计算缩放后坐标（仅限模拟单击）")]
-        void Click(bool isSimulate = false, bool detect_scaling = false);
+        void Click(bool isSimulate = false, bool detectScaling = false);
         void Clear(bool isSimulate = false);
         [Description("可以直接用Java Api赋值 \r\n也可以模拟键盘输入,以及模拟输入是否转义字符\r\n 如果字符串内有 ()~{}^+等字符，建议打开转义")]
         void Send_Text(string value, bool isSimulate = false, bool isEscape = false);
@@ -87,7 +86,7 @@ namespace BasicJab.ComInterface
         void Paste_Text(string value);
 
         [Description("获取Table指定Index的Cell")]
-        JabElement Get_Table_Cell(int rowIndex, int ColumnIndex);
+        JabElement Get_Table_Cell(int rowIndex, int columnIndex);
         [Description("执行Accessible Action，返回是否执行成功 \r\n 用例:ele.Do_Action(\"Click\")\r\nele.Do_Action(\"Close Window\")")]
         bool Do_Action(string strAction);
 
