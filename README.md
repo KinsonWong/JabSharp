@@ -11,3 +11,7 @@
 #### [access-bridge-explorer](https://github.com/google/access-bridge-explorer)
 用于检索Java窗体元素，作用类似于Spy
 
+
+### 更新
+##### 2023/06/24
+使用Xunit框架，编写几个简单的测试用例，对项目进行简单的测试

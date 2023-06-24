@@ -10,6 +10,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BasicJab", "BasicJab\BasicJ
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WindowsAccessBridgeInterop", "WindowsAccessBridgeInterop\WindowsAccessBridgeInterop.csproj", "{B324D709-F29C-45C6-9399-D93135BE85FE}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JabSharp.Test", "JabSharp.Test\JabSharp.Test.csproj", "{001968C7-883E-47E2-BA21-6B7BA9FA52B6}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -24,6 +26,10 @@ Global
 		{B324D709-F29C-45C6-9399-D93135BE85FE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B324D709-F29C-45C6-9399-D93135BE85FE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B324D709-F29C-45C6-9399-D93135BE85FE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{001968C7-883E-47E2-BA21-6B7BA9FA52B6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{001968C7-883E-47E2-BA21-6B7BA9FA52B6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{001968C7-883E-47E2-BA21-6B7BA9FA52B6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{001968C7-883E-47E2-BA21-6B7BA9FA52B6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
