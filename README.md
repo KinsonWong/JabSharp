@@ -8,8 +8,8 @@
 
 ### 启用Java Access Bridge
 进入Java根目录的bin文件夹中<br>
-cmd输入以下命令<br>
-`jabswitch.exe -disable`
+cmd输入以下命令，需要重启后生效<br>
+`jabswitch.exe -enable` 
 
 ---
 
